@@ -4,9 +4,15 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 
-TOKEN = os.environ.get("TELEGRAM_TOKEN", "")
-CHAT = os.environ.get("TELEGRAM_CHAT_ID", "")
+TOKEN = os.environ.get("TELEGRAM_TOKEN", "").strip().strip('"').strip("'")
+if TOKEN.upper().startswith("TELEGRAM_"):
+    TOKEN = TOKEN[len("TELEGRAM_"):]
+if TOKEN.lower().startswith("bot") and ":" in TOKEN:
+    TOKEN = TOKEN[3:]
+CHAT = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
+print("Token uzunlugu:", len(TOKEN), "| ':' var mi:", ":" in TOKEN, "| ilk karakter rakam mi:", TOKEN[:1].isdigit())
 TEST = os.environ.get("TEST", "").lower() == "true"
+NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "").strip() or "nasdaq-claud-8axkh9njyd"
 
 MIN_P, MAX_P = 1.0, 20.0          # fiyat aralığı ($)
 MIN_DOLLAR_VOL = 2_000_000        # 20 günlük ortalama günlük işlem hacmi ($)
@@ -17,6 +23,15 @@ STATE = "state.json"
 
 
 def tg(text):
+    if NTFY_TOPIC:
+        for i in range(0, len(text), 1500):
+            try:
+                r = requests.post(f"https://ntfy.sh/{NTFY_TOPIC}", data=text[i:i + 1500].encode("utf-8"),
+                                  headers={"Title": "Nasdaq Bot"}, timeout=30)
+                print("ntfy cevabi:", r.status_code)
+            except Exception as e:
+                print("ntfy hatasi:", e)
+        return
     chat = get_chat()
     if not TOKEN:
         print("HATA: TELEGRAM_TOKEN secret'i bos. Secret adinin tam olarak TELEGRAM_TOKEN oldugunu kontrol et.")
@@ -36,6 +51,10 @@ def get_chat():
     if CHAT or not TOKEN:
         return CHAT
     try:
+        me = requests.get(f"https://api.telegram.org/bot{TOKEN}/getMe", timeout=30).json()
+        print("Token hangi bota ait:", (me.get("result") or {}).get("username"))
+        wh = requests.get(f"https://api.telegram.org/bot{TOKEN}/getWebhookInfo", timeout=30).json()
+        print("Webhook adresi var mi:", bool((wh.get("result") or {}).get("url")))
         r = requests.get(f"https://api.telegram.org/bot{TOKEN}/getUpdates", timeout=30).json()
         print("getUpdates:", r.get("ok"), r.get("description", ""), "mesaj sayisi:", len(r.get("result", [])))
         for u in reversed(r.get("result", [])):
