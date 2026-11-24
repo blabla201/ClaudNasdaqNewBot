@@ -18,12 +18,17 @@ STATE = "state.json"
 
 def tg(text):
     chat = get_chat()
+    if not TOKEN:
+        print("HATA: TELEGRAM_TOKEN secret'i bos. Secret adinin tam olarak TELEGRAM_TOKEN oldugunu kontrol et.")
+    elif not chat:
+        print("HATA: Sohbet bulunamadi. Token yanlis/eski olabilir veya botta Start'a basilmamis.")
     if not (TOKEN and chat):
         print(text)
         return
     for i in range(0, len(text), 3900):
-        requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
-                      data={"chat_id": chat, "text": text[i:i + 3900]}, timeout=30)
+        r = requests.post(f"https://api.telegram.org/bot{TOKEN}/sendMessage",
+                          data={"chat_id": chat, "text": text[i:i + 3900]}, timeout=30)
+        print("Telegram cevabi:", r.status_code, r.text[:150])
 
 
 def get_chat():
@@ -32,6 +37,7 @@ def get_chat():
         return CHAT
     try:
         r = requests.get(f"https://api.telegram.org/bot{TOKEN}/getUpdates", timeout=30).json()
+        print("getUpdates:", r.get("ok"), r.get("description", ""), "mesaj sayisi:", len(r.get("result", [])))
         for u in reversed(r.get("result", [])):
             m = u.get("message") or {}
             if m.get("chat", {}).get("id"):
