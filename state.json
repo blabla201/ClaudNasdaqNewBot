@@ -6,7 +6,10 @@
    "type": "Kırılım",
    "stop": 2.692857129233224,
    "target": 3.2542860848563055,
-   "status": "pending"
+   "status": "open",
+   "entry": 2.880000114440918,
+   "entry_date": "2026-11-25",
+   "days": 1
   },
   {
    "symbol": "GOSS",
@@ -14,7 +17,10 @@
    "type": "Kırılım",
    "stop": 11.53278544970921,
    "target": 15.964429787227086,
-   "status": "pending"
+   "status": "open",
+   "entry": 12.829999923706055,
+   "entry_date": "2026-11-25",
+   "days": 1
   }
  ]
 }
