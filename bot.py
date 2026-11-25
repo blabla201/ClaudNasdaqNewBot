@@ -19,6 +19,7 @@ MIN_DOLLAR_VOL = 2_000_000        # 20 günlük ortalama günlük işlem hacmi (
 HOLD_DAYS = 3                     # en fazla tutma süresi (işlem günü)
 MAX_OPEN = 2                      # aynı anda sanal pozisyon
 ALLOC = 50.0                      # sanal işlem başına $
+COMMISSION = 3.0                  # Midas: alışta 1,50$ + satışta 1,50$
 STATE = "state.json"
 
 
@@ -200,9 +201,10 @@ def stats(state):
     cl = [p for p in state["positions"] if p["status"] == "closed"]
     if not cl:
         return "📊 Sanal işlem geçmişi: henüz kapanan işlem yok."
-    win = sum(1 for p in cl if p["pnl_pct"] > 0)
-    tot = sum(p["pnl_pct"] * ALLOC / 100 for p in cl)
-    return f"📊 Sanal işlem: {len(cl)} işlem, kazanma %{win / len(cl) * 100:.0f}, toplam {tot:+.2f}$ (işlem başı {ALLOC:.0f}$)"
+    net = [p["pnl_pct"] * ALLOC / 100 - COMMISSION for p in cl]
+    win = sum(1 for x in net if x > 0)
+    return (f"📊 Sanal işlem: {len(cl)} işlem, kazanma %{win / len(cl) * 100:.0f}, "
+            f"komisyon sonrası toplam {sum(net):+.2f}$ (işlem başı {ALLOC:.0f}$, komisyon {COMMISSION:.0f}$)")
 
 
 def main():
