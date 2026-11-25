@@ -14,7 +14,7 @@ print("Token uzunlugu:", len(TOKEN), "| ':' var mi:", ":" in TOKEN, "| ilk karak
 TEST = os.environ.get("TEST", "").lower() == "true"
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "").strip() or "nasdaq-claud-8axkh9njyd"
 
-MIN_P, MAX_P = 1.0, 20.0          # fiyat aralığı ($)
+MIN_P, MAX_P = 1.0, 5.0           # fiyat aralığı ($)
 MIN_DOLLAR_VOL = 2_000_000        # 20 günlük ortalama günlük işlem hacmi ($)
 HOLD_DAYS = 3                     # en fazla tutma süresi (işlem günü)
 MAX_OPEN = 2                      # aynı anda sanal pozisyon
@@ -113,7 +113,12 @@ def analyze(df):
     c, h, l, o = (df[k].values for k in ("Close", "High", "Low", "Open"))
     v = df["Volume"].values.astype(float)
     n = len(c)
-    if n < 40 or c[-1] < c[-20:].mean():
+    if n < 60:
+        return None
+    sma20, sma50 = c[-20:].mean(), c[-50:].mean()
+    sma20_prev = c[-25:-5].mean()
+    # net yükselen trend: fiyat > 20g ort > 50g ort ve 20g ort yükseliyor
+    if not (c[-1] > sma20 > sma50 and sma20 > sma20_prev):
         return None
     tr = np.maximum(h[1:] - l[1:], np.maximum(abs(h[1:] - c[:-1]), abs(l[1:] - c[:-1])))
     atr = tr[-14:].mean()
