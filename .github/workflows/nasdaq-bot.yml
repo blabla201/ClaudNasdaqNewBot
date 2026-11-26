@@ -3,7 +3,7 @@ name: Nasdaq Bot
 on:
   push:
   schedule:
-    - cron: "30 21 * * 1-5"   # Nasdaq kapanışından sonra (hafta içi)
+    - cron: "0 13 * * 1-5"   # Nasdaq kapanışından sonra (hafta içi)
   workflow_dispatch:
     inputs:
       test:
