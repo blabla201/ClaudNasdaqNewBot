@@ -227,7 +227,7 @@ def stats(state):
 
 def main():
     if TEST:
-        tg("✅ Nasdaq botu çalışıyor. Hafta içi her akşam (Nasdaq kapanışından sonra) tarama yapıp mesaj atacağım.")
+        tg("✅ Nasdaq botu çalışıyor. Hafta içi her gün Türkiye saatiyle yaklaşık 16:00'da (piyasa açılışından önce) tarama yapıp mesaj atacağım.")
         return
     state = json.load(open(STATE)) if os.path.exists(STATE) else {"positions": []}
     msgs = []
