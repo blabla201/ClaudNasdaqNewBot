@@ -14,7 +14,7 @@ print("Token uzunlugu:", len(TOKEN), "| ':' var mi:", ":" in TOKEN, "| ilk karak
 TEST = os.environ.get("TEST", "").lower() == "true"
 NTFY_TOPIC = os.environ.get("NTFY_TOPIC", "").strip() or "nasdaq-claud-8axkh9njyd"
 
-MIN_P, MAX_P = 1.0, 5.0           # fiyat aralığı ($)
+MIN_P, MAX_P = 0.30, 10.0         # fiyat aralığı ($)
 MIN_DOLLAR_VOL = 2_000_000        # 20 günlük ortalama günlük işlem hacmi ($)
 HOLD_DAYS = 3                     # en fazla tutma süresi (işlem günü)
 MAX_OPEN = 2                      # aynı anda sanal pozisyon
@@ -109,18 +109,29 @@ def fetch(symbols, period, filt):
     return out
 
 
+COUNT = [0] * 6   # 0 taranan, 1 trend, 2 kırılım, 3 hacim+mum, 4 zamanlama, 5 sinyal
+
+
+def record(stage):
+    for k in range(stage + 1):
+        COUNT[k] += 1
+
+
 def analyze(df):
     """Hacimli gerçek kırılım (bugün) veya son 3 gündeki kırılımın geri testi."""
     c, h, l, o = (df[k].values for k in ("Close", "High", "Low", "Open"))
     v = df["Volume"].values.astype(float)
     n = len(c)
     if n < 60:
+        record(0)
         return None
     sma20, sma50 = c[-20:].mean(), c[-50:].mean()
     sma20_prev = c[-25:-5].mean()
     # net yükselen trend: fiyat > 20g ort > 50g ort ve 20g ort yükseliyor
     if not (c[-1] > sma20 > sma50 and sma20 > sma20_prev):
+        record(0)
         return None
+    stage = 1
     tr = np.maximum(h[1:] - l[1:], np.maximum(abs(h[1:] - c[:-1]), abs(l[1:] - c[:-1])))
     atr = tr[-14:].mean()
     for k in range(4):
@@ -130,11 +141,16 @@ def analyze(df):
         level = h[i - 20:i].max()
         rng = h[i] - l[i]
         volr = v[i] / max(v[i - 20:i].mean(), 1)
-        # gerçek kırılım: seviye üstü kapanış, yeşil mum, güçlü hacim, fitil değil (kapanış mumun üst kısmında)
-        if not (c[i] > level and c[i] >= o[i] and volr >= 1.5 and rng > 0 and (c[i] - l[i]) / rng >= 0.6):
+        if not (c[i] > level and c[i] >= o[i]):
             continue
+        stage = max(stage, 2)
+        # gerçek kırılım: güçlü hacim, fitil değil (kapanış mumun üst kısmında)
+        if not (volr >= 1.5 and rng > 0 and (c[i] - l[i]) / rng >= 0.6):
+            continue
+        stage = max(stage, 3)
         if k > 0 and not (l[-1] <= level * 1.02 and c[-1] > level):
             continue
+        stage = max(stage, 4)
         entry = c[-1]
         if entry > level * 1.08:
             continue
@@ -142,9 +158,11 @@ def analyze(df):
         risk = entry - stop
         if risk <= 0 or not (0.015 <= risk / entry <= 0.12):
             continue
+        record(5)
         return dict(type="Kırılım" if k == 0 else "Geri test", level=float(level),
                     entry=float(entry), stop=float(stop), target=float(entry + 2 * risk),
                     volr=float(volr), date=df.index[-1].strftime("%Y-%m-%d"))
+    record(stage)
     return None
 
 
@@ -253,7 +271,9 @@ def main():
 
     head = f"📅 Nasdaq tarama ({dt.date.today():%d.%m.%Y})"
     body = "\n\n".join(lines) if lines else "Bugün şartları sağlayan hisse yok. Zorlamıyoruz."
-    tail = "\n".join(msgs + [stats(state)])
+    funnel = (f"🔎 Eleme: taranan {COUNT[0]} → trend {COUNT[1]} → kırılım {COUNT[2]} → "
+              f"hacim/mum {COUNT[3]} → zamanlama {COUNT[4]} → sinyal {COUNT[5]}")
+    tail = "\n".join(msgs + [stats(state), funnel])
     tg(f"{head}\n\n{body}\n\n{tail}\n\nYatırım tavsiyesi değildir; sanal işlemle test aşamasındadır.")
     json.dump(state, open(STATE, "w"), indent=1, ensure_ascii=False)
 
