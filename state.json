@@ -49,7 +49,7 @@
    "target": 4.948191376004901,
    "avgvol": 543702.05,
    "date": "2026-11-27",
-   "alerted": false
+   "alerted": true
   },
   {
    "symbol": "OPK",
@@ -58,7 +58,7 @@
    "target": 1.9615471476827346,
    "avgvol": 3610212.85,
    "date": "2026-11-27",
-   "alerted": false
+   "alerted": true
   },
   {
    "symbol": "RSSS",
