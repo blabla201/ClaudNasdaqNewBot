@@ -9,7 +9,7 @@
    "status": "open",
    "entry": 2.880000114440918,
    "entry_date": "2026-11-25",
-   "days": 1
+   "days": 2
   },
   {
    "symbol": "GOSS",
@@ -20,7 +20,64 @@
    "status": "open",
    "entry": 12.829999923706055,
    "entry_date": "2026-11-25",
-   "days": 1
+   "days": 2
+  },
+  {
+   "symbol": "MGN",
+   "signal_date": "2026-11-27",
+   "type": "Kırılım adayı",
+   "level": 4.519999980926514,
+   "stop": 4.3194642833301,
+   "target": 4.948191376004901,
+   "status": "watching"
+  },
+  {
+   "symbol": "OPK",
+   "signal_date": "2026-11-27",
+   "type": "Kırılım adayı",
+   "level": 1.8650000095367432,
+   "stop": 1.8223214404923576,
+   "target": 1.9615471476827346,
+   "status": "watching"
   }
- ]
+ ],
+ "watch": [
+  {
+   "symbol": "MGN",
+   "level": 4.519999980926514,
+   "stop": 4.3194642833301,
+   "target": 4.948191376004901,
+   "avgvol": 543702.05,
+   "date": "2026-11-27",
+   "alerted": false
+  },
+  {
+   "symbol": "OPK",
+   "level": 1.8650000095367432,
+   "stop": 1.8223214404923576,
+   "target": 1.9615471476827346,
+   "avgvol": 3610212.85,
+   "date": "2026-11-27",
+   "alerted": false
+  },
+  {
+   "symbol": "RSSS",
+   "level": 3.190000057220459,
+   "stop": 3.0939286180904935,
+   "target": 3.401282935823713,
+   "avgvol": 729220.2,
+   "date": "2026-11-27",
+   "alerted": false
+  },
+  {
+   "symbol": "ALEC",
+   "level": 2.8399999141693115,
+   "stop": 2.7247285076550076,
+   "target": 3.087582726682935,
+   "avgvol": 2023274.5,
+   "date": "2026-11-27",
+   "alerted": false
+  }
+ ],
+ "last_bar": "2026-11-27"
 }
